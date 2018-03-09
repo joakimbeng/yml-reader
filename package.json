@@ -24,11 +24,19 @@
     "js-yaml": "^3.11.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^6.1.3",
+    "@commitlint/config-angular": "^6.1.3",
     "ava": "^0.25.0",
+    "husky": "^0.14.3",
+    "semantic-release": "^15.0.2",
     "xo": "^0.20.3"
   },
   "scripts": {
-    "test": "xo && ava"
+    "lint": "xo",
+    "pretest": "npm run -s lint",
+    "test": "ava",
+    "commitmsg": "commitlint -e",
+    "semantic-release": "semantic-release"
   },
   "xo": {
     "space": true
