@@ -1,55 +1,43 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
+const test = require('ava');
+const parser = require('../../lib/custom-yml-reader');
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-var fs = require('fs');
-var parser = require('../../lib/custom-yml-reader');
+test('Include Files - Required - should include deep nested yml', t => {
+  const yamlFile = path.resolve(__dirname, 'fixtures/include-required/include-main-test.yml');
+  const expected = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/include-required/include-main-test-expected.json'), 'utf8'));
 
-suite('Include Files - Required', function() {
-  test('should include deep nested yml', function () {
-    var path = require('path'),
-      actual   = null,
-      yamlFile = path.resolve(__dirname, 'fixtures/include-required/include-main-test.yml'),
-      expected = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/include-required/include-main-test-expected.json'), 'utf8'));
+  const actual = parser.readYml(yamlFile);
+  t.deepEqual(actual, expected);
+});
 
-    actual = parser.readYml(yamlFile);  
-    assert.deepEqual(actual, expected);
-  });
+test('Include Files - Required - should include with substituted ENV variable', t => {
+  const yamlFile = path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test.yml');
+  const expected = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test-expected.json'), 'utf8'));
 
-  test('should include with substituted ENV variable', function () {
-    var path = require('path'),
-      actual   = null,
-      yamlFile = path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test.yml'),
-      expected = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test-expected.json'), 'utf8'));
+  // Set the ENVIRONMENT ENV property
+  process.env.ENVIRONMENT = 'staging';
 
-    //Set the ENVIRONMENT ENV property
-    process.env["ENVIRONMENT"] = "staging";
+  const actual = parser.readYml(yamlFile);
+  t.deepEqual(actual, expected);
+});
 
-    actual = parser.readYml(yamlFile);  
-    assert.deepEqual(actual, expected);
-  });
+test('Include Files - Required - should error when env variable not found', t => {
+  const yamlFile = path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test.yml');
 
-  test('should error when env variable not found', function () {
-    var path = require('path'),
-      actual   = null,
-      yamlFile = path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test.yml'),
-      expected = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures/include-required/sub-env-var-main-test-expected.json'), 'utf8'));
+  // Delete the ENVIRONMENT ENV property
+  delete process.env.ENVIRONMENT;
 
-    //delete the ENVIRONMENT ENV property
-    delete process.env["ENVIRONMENT"];
+  t.throws(() => {
+    parser.readYml(yamlFile);
+  }, /Unable to find ENV Variable 'ENVIRONMENT'/);
+});
 
-    assert.throws(function() {
-      parser.readYml(yamlFile);  
-    }, Error, "Should not be able to find ENV variable");
-  });
+test('Include Files - Required - should error when include not found', t => {
+  const yamlFile = path.resolve(__dirname, 'fixtures/include-required/error-include-not-exists-test.yml');
 
-  test('should error when include not found', function () {
-    var path = require('path'),
-      actual   = null,
-      yamlFile = path.resolve(__dirname, 'fixtures/include-required/error-include-not-exists-test.yml');
-
-    assert.throws(function() {
-      parser.readYml(yamlFile);
-    }, Error, "Should not find the include file");
-  });
+  t.throws(() => {
+    parser.readYml(yamlFile);
+  }, /ENOENT:.*/);
 });

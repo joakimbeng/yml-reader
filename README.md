@@ -1,6 +1,10 @@
 YML Reader
 ==========
-[![Build Status](https://travis-ci.org/jono-tt/yml-reader.svg)](https://travis-ci.org/jono-tt/yml-reader)
+[![Build Status](https://travis-ci.org/joakimbeng/yml-reader.svg)](https://travis-ci.org/joakimbeng/yml-reader)
+
+**INFO** This is a modified fork of [jono-tt/yml-reader](https://github.com/jono-tt/yml-reader) with the difference that no values are cleaned or removed. Also the cli tool has been removed. So if you want those feature you better use the original module instead.
+
+---
 
 This tool allows you to write configurations in YML with extensions to include other files from within your yml and also allows for substitution of ENVIRONMENT variables so that you can build complex configurations but keep the contents of those configurations in separate configuration files.
 
@@ -12,10 +16,10 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: postgres
-  labels: 
+  labels:
     name: postgres
-spec: 
-  containers: 
+spec:
+  containers:
     -
       image: postgres:9.4
       name: postgres
@@ -52,15 +56,8 @@ gcePersistentDisk:
   fsType: ext4
 ```
 
-Run the following CLI for each:
-```
-VOLUME_TYPE=development yml-reader main-containers.yml
-VOLUME_TYPE=staging yml-reader main-containers.yml
-VOLUME_TYPE=production yml-reader main-containers.yml
-```
-
-###Usages###
-####Include####
+### Usages ###
+#### Include ####
 Using includes you are able to bring in other configuration files to orchestrate multiple sources into a single yml or JSON output. There are 2 types of includes you are able to use within your yml files:
 
 - `!include file.yml`
@@ -75,7 +72,7 @@ foo:
 ```
 Which would produce the file path `test/staging_property.yml` if the env variable (`MY_RUNTIME`) value was set to `staging`.
 
-####Env####
+#### Env ####
 You can also specify scalar values within your yaml by using the directive `ENV`. For e.g:
 ```
 host: !env MY_SERVICE_HOST
@@ -88,26 +85,3 @@ When the env property `MY_SERVICE_HOST` is set to `localhost` will produce the o
    "description": "This is using host localhost"
 }
 ```
-
-### CLI Tool ###
-
-Using the cli commands you are able to specify a starting file as part of the command or they can be read from STDIN.
-There are 2 ways of specifying environment variables:
-
-- `ENVIRONMENT=staging USER=me yml-reader test/custom-yml-reader/fixtures/include-required/sub-env-var-main-test.yml `
-- `yml-reader -e ENVIRONMENT=staging -e USER=me test/custom-yml-reader/fixtures/include-required/sub-env-var-main-test.yml`
-
-Using standard in, you must specify the start directory if including sub files from std in:
-- `cat test/custom-yml-reader/fixtures/include-required/sub-env-var-main-test.yml | yml-reader -d test/custom-yml-reader/fixtures/include-required/ -e ENVIRONMENT=staging`
-
-
-Outputting back to YML:
-- `yml-reader -y test/custom-yml-reader/fixtures/include-required/multiple-roots-test.yml`
-
-Outputting YML with Root array split up by parameter (defaults: "---")
-- `yml-reader -y test/custom-yml-reader/fixtures/include-required/multiple-roots-test.yml -s`
-- `yml-reader -y test/custom-yml-reader/fixtures/include-required/multiple-roots-test.yml -s "***"`
-
-
-
-
